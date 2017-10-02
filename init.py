@@ -1,17 +1,20 @@
 import numpy as np
+from collections import defaultdict
+
 
 class variable:
-    def __init__(self,location,orientation,distance,tag):
+    def __init__(self, location, orientation, length, tag):
         """
         :param location: where the word starts in the matrix
         :param orientation: whether the word is vertical or horizontal
-        :param distance: how long the word is 
+        :param length: how long the word is 
         :param tag:number assigned to the word in crossword (e.g: 1,2,3..n)
         """
-        self.distance = distance
+        self.length = length
         self.location = location
         self.orientation = orientation
         self.tag = tag
+
 
 def modify_crossword_edges():
 
@@ -54,10 +57,27 @@ def extract_variables(crossword_map):
         if 'v' in var.orientation:
             for i in range(var.location[0][0],crossword_map.shape[0]):
                 if crossword_map[i,var.location[0][1]] == "#":
-                    var.distance = i - var.location[0][0]
+                    var.length = i - var.location[0][0]
                     break
 
     return variables
 
 
-extract_variables(modify_crossword_edges())
+def loadDictionary(variables,filename):
+    """
+    :param variables: list of "variable" objects
+    :param filename: path to file with the dictionary to load
+    :return: A dictionary where keys are the size of the words to insert in the crossword 
+             and the value is every word of that size found in the file
+    """
+
+    words = np.loadtxt(filename,delimiter="\n",dtype="S")
+    lengths = [var.length for var in variables]
+    Domain = defaultdict(list)
+
+    for i in range(min(lengths),max(lengths) + 1):
+        for x in words.flatten():
+            if len(x) == i:
+                Domain[i].append(x)
+
+    return Domain
