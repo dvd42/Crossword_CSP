@@ -16,12 +16,12 @@ class variable:
         self.tag = tag
 
 
-def modify_crossword_edges():
+def modify_crossword_edges(filename):
 
     """
     :return: crossword structure stored in a 2D numpy array 
     """
-    crossword_map = np.loadtxt("crossword_CB.txt", delimiter="\t", comments="!", dtype="S2")
+    crossword_map = np.loadtxt(filename, delimiter="\t", comments="!", dtype="S2")
 
     # Surround the matrix with #
     crossword_map = np.insert(crossword_map, 0, "#", axis=1)
@@ -42,7 +42,7 @@ def extract_variables(crossword_map):
 
     a = list(crossword_map.flatten())
 
-    #Extract variables from crossword and assign distance to 'h' variables
+    # Extract variables from crossword and assign distance to 'h' variables
     for i in range(1,len(a)):
         if a[i - 1] == "#" and "0" != a[i] and "#" != a[i]:
             # noinspection PyTypeChecker
@@ -50,9 +50,10 @@ def extract_variables(crossword_map):
 
         if a[i - crossword_map.shape[1]] == "#" and "0" != a[i] and "#" != a[i]:
             # noinspection PyTypeChecker
+            #TODO use lambda function to calculate 'v' variables lengths
             variables.append(variable(np.argwhere(crossword_map == a[i]), 'v', 0, a[i]))
 
-    #Assign distance to 'v' variables
+    # Assign distance to 'v' variables
     for var in variables:
         if 'v' in var.orientation:
             for i in range(var.location[0][0],crossword_map.shape[0]):
@@ -75,6 +76,7 @@ def loadDictionary(variables,filename):
     lengths = [var.length for var in variables]
     Domain = defaultdict(list)
 
+    # noinspection PyTypeChecker
     for i in range(min(lengths),max(lengths) + 1):
         for x in words.flatten():
             if len(x) == i:
