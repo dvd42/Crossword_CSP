@@ -3,24 +3,27 @@ from collections import defaultdict
 
 
 class variable:
-    def __init__(self, location, orientation, length, tag,value):
+    def __init__(self, location, orientation, length, tag,value,squares):
         """
         :param location: where the word starts in the matrix
         :param orientation: whether the word is vertical or horizontal
         :param length: how long the word is 
         :param tag:number assigned to the word in crossword (e.g: 1,2,3..n)
-        :param: value: the word
+        :param value: the word
+        :param squares: every square occupied by the word
         """
         self.length = length
         self.location = location
         self.orientation = orientation
         self.tag = tag
         self.value = value
+        self.squares = squares
 
 
 def modify_crossword_edges(filename):
 
     """
+    :param filename: path to the file containing the crossword
     :return: crossword structure stored in a 2D numpy array 
     """
     crossword_map = np.loadtxt(filename, delimiter="\t", comments="!", dtype="S2")
@@ -48,12 +51,12 @@ def extract_variables(crossword_map):
     for i in range(1,len(a)):
         if a[i - 1] == "#" and "0" != a[i] and "#" != a[i]:
             # noinspection PyTypeChecker
-            variables.append(variable(np.argwhere(crossword_map == a[i]),'h',a[a.index(a[i]):].index("#"),a[i],""))
+            variables.append(variable(np.argwhere(crossword_map == a[i]),'h',a[a.index(a[i]):].index("#"),a[i],"",[]))
 
         if a[i - crossword_map.shape[1]] == "#" and "0" != a[i] and "#" != a[i]:
             # noinspection PyTypeChecker
             #TODO use lambda function to calculate 'v' variables lengths
-            variables.append(variable(np.argwhere(crossword_map == a[i]), 'v', 0, a[i],""))
+            variables.append(variable(np.argwhere(crossword_map == a[i]), 'v', 0, a[i],"",[]))
 
     # Assign distance to 'v' variables
     for var in variables:
@@ -62,6 +65,16 @@ def extract_variables(crossword_map):
                 if crossword_map[i,var.location[0][1]] == "#":
                     var.length = i - var.location[0][0]
                     break
+
+    #Calculate the absolute squares occupied by each variable
+    for var in variables:
+        var.squares = [var.location[0][0]*crossword_map.shape[1] + var.location[0][1]]
+
+        for i in range(1, var.length):
+            if var.orientation == 'v':
+                var.squares.append(var.squares[0] + i * crossword_map.shape[1])
+            else:
+                var.squares.append(var.squares[0] + i)
 
     return variables
 
@@ -84,6 +97,6 @@ def extract_domain(variables, filename):
             if len(x) == i:
                 Domain[i].append(x)
 
-    return Domain,min(lengths),max(lengths)
+    return Domain
 
 extract_variables(modify_crossword_edges("crossword_CB.txt"))

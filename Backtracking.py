@@ -1,9 +1,7 @@
-import numpy as np
 import init as it
 
 
 def check_restrictions(var, var_value, a_variables,max_length):
-
     """
     :param var: variable being analyzed
     :param a_variables: list of assigned variables
@@ -11,16 +9,25 @@ def check_restrictions(var, var_value, a_variables,max_length):
     :return: True if all restrictions are satisfied, False otherwise
     """
 
-    #Spaghetti code to check for restrictions
+    if not a_variables:
+        return True
 
-    #TODO implement this
+    # Find words that intersect with the variable that is being analyzed
+    for v in a_variables:
+        if v.orientation != var.orientation:
+            matches = list(set(var.squares) & set(v.squares))
+            if matches:
+                # Check that the current variable satisfies the restrictions
+                for match in matches:
+                   if v.value[v.squares.index(match)] != var_value[var.squares.index(match)]:
+                       return False
 
     return True
 
 
-def Backtracking(a_variables, u_variables, domain,max_length,size):
+
+def Backtracking(a_variables, u_variables, domain,size):
     """
-    
     :param a_variables: list of assigned variables
     :param u_variables: list of unassigned variables
     :param domain: dictionary holding all words 
@@ -28,6 +35,8 @@ def Backtracking(a_variables, u_variables, domain,max_length,size):
     :param size: number of variables
     :return: list with all variables assigned or None if failure
     """
+
+    res = []
 
     if not u_variables:
         return a_variables
@@ -39,22 +48,27 @@ def Backtracking(a_variables, u_variables, domain,max_length,size):
         if check_restrictions(var,word,a_variables,max_length):
             var.value = word
             a_variables.append(var)
-            res.append(Backtracking(a_variables,u_variables,domain,max_length,size))
+            print var.tag,var.orientation,var.value
+            res.append(Backtracking(a_variables,u_variables,domain,size))
+
+            res = filter(lambda a: a != None, res)
             if len(res) == size:
-                print "hello"
                 return res
+
 
     return None
 
 
-crossword = it.modify_crossword_edges("crossword_A.txt")
+crossword = it.modify_crossword_edges("crossword_CB.txt")
 variables = it.extract_variables(crossword)
-domain,min_length,max_length = it.extract_domain(variables, "diccionari_A.txt")
+domain = it.extract_domain(variables, "diccionari_CB.txt")
 
-res = []
+
 size = len(variables)
 a_variables = []
 
-print Backtracking(a_variables,variables,domain,max_length,size)
+
+res = Backtracking(a_variables,variables,domain,size)
+
 
 
