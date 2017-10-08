@@ -1,6 +1,5 @@
 import numpy as np
-from collections import OrderedDict
-
+from collections import defaultdict,OrderedDict
 
 def modify_crossword_edges(filename):
 
@@ -54,12 +53,20 @@ def extract_variables(crossword_map):
     return variables
 
 
-def extract_domain(filename):
+def extract_domain(filename,variables):
     """
     :param filename: path to file with the dictionary to load
     :return: numpy array where each position represents a word in the dictionary
     
     """
-
     words = np.loadtxt(filename,delimiter="\n",dtype="S")
-    return words
+    lengths = [len(var[1]) for var in variables]
+    domain =  defaultdict(list)
+
+    for i in words:
+        if len(i) in set(lengths):
+            domain[str(len(i))].append(i)
+
+    domain = OrderedDict(domain)
+    return domain
+
