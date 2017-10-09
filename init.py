@@ -11,7 +11,7 @@ def modify_crossword_edges(filename):
     crossword_map = np.loadtxt(filename, delimiter="\t", comments="!", dtype="S2")
     # Surround the matrix with #
     crossword_map = np.insert(crossword_map, 0, "#", axis=1)
-    crossword_map = np.insert(crossword_map, crossword_map.shape[0], "#", axis=1)
+    crossword_map = np.insert(crossword_map, crossword_map.shape[1], "#", axis=1)
     crossword_map = np.insert(crossword_map, 0, "#", axis=0)
     crossword_map = np.insert(crossword_map, crossword_map.shape[0], "#", axis=0)
 

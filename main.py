@@ -9,6 +9,7 @@ def main():
     words = it.extract_domain("diccionari_CB.txt",u_variables)
     a_variables = []
 
+
     print bck.Backtracking(a_variables, u_variables, words)
 
 
