@@ -1,5 +1,3 @@
-
-
 def modify_domain(domain,var,word,u_variables):
 
 
@@ -29,18 +27,6 @@ def check_restrictions(words,u_variables):
     
     """
 
-
-    # Find words that intersect with the variable that is being analyzed
-    """
-    for v in a_variables:
-        if v[0][0][0] != var[0][0]:
-            matches = list(set(var[1]) & set(v[0][1]))
-            if matches:
-                # Check that the current variable satisfies the restrictions
-                for match in matches:
-                    if v[1][v[0][1].index(match)] != var_value[var[1].index(match)]:
-                        return False,map
-    """
     for v in u_variables:
         if v[0] + "m" in words:
             if not words[v[0] + "m"]:
@@ -58,18 +44,26 @@ def Backtracking(a_variables,u_variables,words):
     :return: 
     
     """
-    domain_size = len(words)
+    if not u_variables:
+        return a_variables,words
 
+    domain_size = len(words)
     var = u_variables[-1]
 
 
-    for word in words[str(len(var[1]))]:
+    if var[0] + "m" in words:
+        x = var[0] + "m"
+    else:
+        x = str(len(var[1]))
+
+    for word in words[x]:
         words = modify_domain(words,var, word,u_variables)
         if check_restrictions(words,u_variables):
-            res = Backtracking(a_variables + [(var,word)],u_variables[:-1],words)
+            res,words = Backtracking(a_variables + [(var,word)],u_variables[:-1],words)
             if res != None:
                 return res
-        else:
-            for i in range(len(words) - domain_size):
-                words.popitem(-1)
-            return None
+
+    for i in range(len(words) - domain_size):
+        print words.popitem(-1)
+
+    return None,words
