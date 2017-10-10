@@ -27,26 +27,26 @@ def extract_variables(crossword_map):
     """
     variables = []
 
-    a = list(crossword_map.flatten())
+    crossword_flattened = list(crossword_map.flatten())
 
 
     # Extract variables from crossword and the squares they occupy variables
-    for i in range(1,len(a)):
+    for i in range(1,len(crossword_flattened)):
         # Horizontal variables
-        if a[i - 1] == "#" and "0" != a[i] and "#" != a[i]:
+        if crossword_flattened[i - 1] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
             # noinspection PyTypeChecker
-            variables.append(("h" + a[i],[i]))
+            variables.append(("h" + crossword_flattened[i],[i]))
 
-            for j in range(1,a[i:].index("#")):
+            for j in range(1,crossword_flattened[i:].index("#")):
                 variables[-1][1].append(i + j)
 
         #Vertical variables
-        if a[i - crossword_map.shape[1]] == "#" and "0" != a[i] and "#" != a[i]:
+        if crossword_flattened[i - crossword_map.shape[1]] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
             # noinspection PyTypeChecker
-            variables.append(("v" + a[i],[a.index(a[i])]))
+            variables.append(("v" + crossword_flattened[i],[i]))
 
-            for j in range(crossword_map.shape[1],len(a),crossword_map.shape[1]):
-                if a[i + j] == "#":
+            for j in range(crossword_map.shape[1],len(crossword_flattened),crossword_map.shape[1]):
+                if crossword_flattened[i + j] == "#":
                     break
                 variables[-1][1].append(i + j)
 
