@@ -1,5 +1,4 @@
 import numpy as np
-from collections import defaultdict,OrderedDict
 
 def modify_crossword_edges(filename):
 
@@ -34,23 +33,29 @@ def extract_variables(crossword_map):
     for i in range(1,len(crossword_flattened)):
         # Horizontal variables
         if crossword_flattened[i - 1] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            # noinspection PyTypeChecker
-            variables.append(("h" + crossword_flattened[i],[i]))
+            variables.append([i])
 
             for j in range(1,crossword_flattened[i:].index("#")):
-                variables[-1][1].append(i + j)
+                variables[-1].append(i + j)
 
         #Vertical variables
         if crossword_flattened[i - crossword_map.shape[1]] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            # noinspection PyTypeChecker
-            variables.append(("v" + crossword_flattened[i],[i]))
+            variables.append([i])
 
             for j in range(crossword_map.shape[1],len(crossword_flattened),crossword_map.shape[1]):
                 if crossword_flattened[i + j] == "#":
                     break
-                variables[-1][1].append(i + j)
+                variables[-1].append(i + j)
 
-    return variables
+    final_variables = []
+    for j in range(len(variables)):
+        #Builds list of of tuples e.g( [(word,collision, collision), ... ])
+        final_variables.append([(i,variables[i].index(list(set(variables[j]) & set(variables[i]))[0]),
+                                 variables[j].index(list(set(variables[i]) & set(variables[j]))[0]))
+                                 for i in range(len(variables)) if set(variables[i]) & set(variables[j]) and i != j])
+
+
+    return final_variables,[len(var) for var in variables]
 
 
 def extract_domain(filename,variables):
@@ -60,13 +65,12 @@ def extract_domain(filename,variables):
     
     """
     words = np.loadtxt(filename,delimiter="\n",dtype="S")
-    lengths = [len(var[1]) for var in variables]
-    domain =  defaultdict(list)
+    domain = {}
 
-    for i in words:
-        if len(i) in set(lengths):
-            domain[str(len(i))].append(i)
+    for i in set(variables):
+        char_array = np.array([list(word) for word in words if len(word) == i])
+        keys = [v for v in variables if v == i]
+        domain.update({key:char_array for key in keys})
 
-    domain = OrderedDict(domain)
+
     return domain
-

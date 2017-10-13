@@ -1,82 +1,78 @@
-def modify_domain(domain,var,word,u_variables):
+import init as it
 
-    copy_domain = domain.copy()
+crossword = it.modify_crossword_edges("crossword_A.txt")
+u_variables,length = it.extract_variables(crossword)
+words = it.extract_domain("diccionari_A.txt", length)
+a_variables = [0] * len(u_variables)
+a_words = [""] * len(a_variables)
+priorities = [0] * len(a_variables)
 
-    for v in u_variables:
-        if v[0][0] != var[0][0]:
-            matches = set(var[1]) & set(v[1])
 
-            for match in matches:
-                new_domain = []
-                if v[0] + "m" in copy_domain and copy_domain[v[0] + "m"]:
-                    [new_domain.append(w) for w in copy_domain[v[0] + "m"] if
-                     w[v[1].index(match)] == word[var[1].index(match)]]
 
-                else:
-                    [new_domain.append(w) for w in copy_domain[str(len(v[1]))] if
-                     w[v[1].index(match)] == word[var[1].index(match)]]
+def modify_domain(var):
 
-                copy_domain[v[0] + "m"] = new_domain
 
-    return copy_domain
+    d = words[length[var]]
 
-def check_restrictions(words,u_variables,a_variables,var_value,var):
+    for match in u_variables[var]:
+        if a_variables[match[0]] != 0:
+            d = d[d[:, match[2]] == a_words[match[0]][match[1]], :]
+
+    return d
+
+
+
+def assign_next_var():
     """
-    :param var: variable being analyzed
-    :param a_variables: list of assigned variables
-    :return: True if all restrictions are satisfied, False otherwise
     
-    """
-
-
-    for v in u_variables:
-        if v[0] + "m" in words:
-            if not words[v[0] + "m"]:
-                return False
-
-
-    # Find words that intersect with the variable that is being analyzed
-    """
-    for v in a_variables:
-        if v[0][0][0] != var[0][0]:
-            matches = list(set(var[1]) & set(v[0][1]))
-            if matches:
-                # Check that the current variable satisfies the restrictions
-                for match in matches:
-                    if v[1][v[0][1].index(match)] != var_value[var[1].index(match)]:
-                        return False
-
-    """
-    return True
-
-
-def Backtracking(a_variables,u_variables,words):
-    """
-    :param a_variables: list of tuples holding the name and absolute position of assigned variables
-    :param u_variables: list of tuples holding the name and absolute position of unassigned variables
-    :param words: dictionary with all the words to fill the crossword
-    :param size: number of variables
     :return: 
-    
     """
-    if not u_variables:
-        return a_variables
+    """
+    next_var = 0
+    for i in range(len(a_variables)):
+        if a_variables[i] != 1:
+            next_var = i
+            break
+    """
 
-    #domain_size = len(words)
-    var = u_variables[-1]
-
-
-    if var[0] + "m" in words:
-        x = var[0] + "m"
+    if all(p == 0 for p in priorities):
+        list = [len(u_variables[i]) if a_variables[i] != 1 else 0 for i in range(len(a_variables))]
+        next_var = list.index(max(list))
     else:
-        x = str(len(var[1]))
+        next_var = priorities.index(max(priorities))
 
-    for word in words[x]:
-        copy_words = modify_domain(words, var, word, u_variables)
-        if check_restrictions(copy_words,u_variables,a_variables,var,word):
-            res = Backtracking(a_variables + [(var,word)],u_variables[:-1],copy_words)
-            if res != None:
-                return res
+    priorities[next_var] = 0
 
+    for v in u_variables[next_var]:
+        if a_variables[v[0]] != 1:
+            priorities[v[0]] += 1
+
+
+    return next_var
+
+def Backtracking(var):
+
+
+    if 0 not in a_variables:
+        return a_words
+
+    a_variables[var] = 1
+    domain = modify_domain(var)
+    next_var = assign_next_var()
+
+    for word in domain:
+        a_words[var] = word
+        res = Backtracking(next_var)
+        if res != None:
+            return res
+
+    a_variables[var] = 0
+
+    for v in u_variables[var]:
+        if priorities[v[0]] > 0:
+            priorities[v[0]] -= 1
 
     return None
+
+
+print Backtracking(assign_next_var())
