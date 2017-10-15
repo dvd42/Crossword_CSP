@@ -24,6 +24,7 @@ def extract_variables(crossword_map):
     :return: a dictionary with the variables as keys and the squares they occupy as values (e.g 'h1' = [1,2,3..])
     
     """
+    temp = []
     variables = []
 
     crossword_flattened = list(crossword_map.flatten())
@@ -33,29 +34,28 @@ def extract_variables(crossword_map):
     for i in range(1,len(crossword_flattened)):
         # Horizontal variables
         if crossword_flattened[i - 1] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            variables.append([i])
+            temp.append(i)
 
             for j in range(1,crossword_flattened[i:].index("#")):
-                variables[-1].append(i + j)
+                temp.append(i + j)
+
+            variables.append(np.array(temp))
+            temp = []
 
         #Vertical variables
         if crossword_flattened[i - crossword_map.shape[1]] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            variables.append([i])
+            temp.append(i)
 
             for j in range(crossword_map.shape[1],len(crossword_flattened),crossword_map.shape[1]):
                 if crossword_flattened[i + j] == "#":
                     break
-                variables[-1].append(i + j)
+                temp.append(i + j)
 
-    final_variables = []
-    for j in range(len(variables)):
-        #Builds list of of tuples e.g( [(word,collision, collision), ... ])
-        final_variables.append([(i,variables[i].index(list(set(variables[j]) & set(variables[i]))[0]),
-                                 variables[j].index(list(set(variables[i]) & set(variables[j]))[0]))
-                                 for i in range(len(variables)) if set(variables[i]) & set(variables[j]) and i != j])
+            variables.append(np.array(temp))
+            temp = []
 
 
-    return final_variables,[len(var) for var in variables]
+    return variables
 
 
 def extract_domain(filename,variables):
@@ -67,10 +67,10 @@ def extract_domain(filename,variables):
     words = np.loadtxt(filename,delimiter="\n",dtype="S")
     domain = {}
 
-    for i in set(variables):
-        char_array = np.array([list(word) for word in words if len(word) == i])
-        keys = [v for v in variables if v == i]
-        domain.update({key:char_array for key in keys})
+    for v in variables:
+        domain.update({v.size: np.array([list(word) for word in words if len(word) == v.size])})
 
 
     return domain
+
+extract_domain("diccionari_CB.txt",extract_variables(modify_crossword_edges("crossword_CB.txt")))

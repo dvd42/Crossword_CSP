@@ -1,78 +1,77 @@
 import init as it
+import numpy as np
+import time as t
 
+time = t.time()
 crossword = it.modify_crossword_edges("crossword_A.txt")
-u_variables,length = it.extract_variables(crossword)
-words = it.extract_domain("diccionari_A.txt", length)
-a_variables = [0] * len(u_variables)
-a_words = [""] * len(a_variables)
-priorities = [0] * len(a_variables)
+u_variables = it.extract_variables(crossword)
+words = it.extract_domain("diccionari_A.txt",u_variables)
 
 
+a_variables = np.zeros(len(u_variables),dtype=bool)
+
+length  = crossword.shape[0]
+width = crossword.shape[1]
+
+crossword = np.zeros((crossword.shape[0],crossword.shape[1]),dtype='S1').flatten()
+hello = []
 
 def modify_domain(var):
 
 
-    d = words[length[var]]
+    d = words[u_variables[var].size]
 
-    for match in u_variables[var]:
-        if a_variables[match[0]] != 0:
-            d = d[d[:, match[2]] == a_words[match[0]][match[1]], :]
-
-    return d
+    for i in range(crossword[u_variables[var]].shape[0]):
+        if crossword[u_variables[var]][i]:
+            d = d[d[:,i] == crossword[u_variables[var][i]],:]
 
 
+    return d,crossword[u_variables[var]]
 
-def assign_next_var():
+
+def assign_next_var(var):
+
     """
-    
     :return: 
     """
-    """
-    next_var = 0
-    for i in range(len(a_variables)):
-        if a_variables[i] != 1:
+
+    for i in range(len(u_variables)):
+
+        if np.any(np.in1d(u_variables[var],u_variables[i])) and not a_variables[i]:
             next_var = i
-            break
-    """
+            return next_var
 
-    if all(p == 0 for p in priorities):
-        list = [len(u_variables[i]) if a_variables[i] != 1 else 0 for i in range(len(a_variables))]
-        next_var = list.index(max(list))
-    else:
-        next_var = priorities.index(max(priorities))
+    for i in range(len(a_variables)):
+        if not a_variables[i]:
+            next_var = i
+            return next_var
 
-    priorities[next_var] = 0
-
-    for v in u_variables[next_var]:
-        if a_variables[v[0]] != 1:
-            priorities[v[0]] += 1
-
-
-    return next_var
 
 def Backtracking(var):
 
+    #hello.append("hello")
 
-    if 0 not in a_variables:
-        return a_words
 
-    a_variables[var] = 1
-    domain = modify_domain(var)
-    next_var = assign_next_var()
+    if False not in a_variables:
+        return np.reshape(crossword,(length,width))
+
+
+
+    a_variables[var] = True
+    domain,pos = modify_domain(var)
+    next_var = assign_next_var(var)
 
     for word in domain:
-        a_words[var] = word
+        crossword[u_variables[var]] = word
         res = Backtracking(next_var)
         if res != None:
             return res
 
-    a_variables[var] = 0
 
-    for v in u_variables[var]:
-        if priorities[v[0]] > 0:
-            priorities[v[0]] -= 1
-
+    crossword[u_variables[var]] = pos
+    a_variables[var] = False
     return None
 
 
-print Backtracking(assign_next_var())
+print Backtracking(assign_next_var(0))
+print "Total Time: %f" % (t.time() - time)
