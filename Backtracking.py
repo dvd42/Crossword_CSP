@@ -2,19 +2,19 @@ import init as it
 import numpy as np
 import time as t
 
-time = t.time()
-crossword = it.modify_crossword_edges("crossword_A.txt")
+
+crossword = it.modify_crossword_edges("crossword_CB.txt")
 u_variables = it.extract_variables(crossword)
 words = it.extract_domain("diccionari_A.txt",u_variables)
 
-
 a_variables = np.zeros(len(u_variables),dtype=bool)
-
 length  = crossword.shape[0]
 width = crossword.shape[1]
+done = False
 
 crossword = np.zeros((crossword.shape[0],crossword.shape[1]),dtype='S1').flatten()
-hello = []
+iter = 0
+
 
 def modify_domain(var):
 
@@ -50,9 +50,13 @@ def assign_next_var(var):
 def Backtracking(var):
 
     #hello.append("hello")
+    global iter
+    global done
 
+    iter += 1
 
     if False not in a_variables:
+        done = True
         return np.reshape(crossword,(length,width))
 
 
@@ -64,7 +68,7 @@ def Backtracking(var):
     for word in domain:
         crossword[u_variables[var]] = word
         res = Backtracking(next_var)
-        if res != None:
+        if done:
             return res
 
 
@@ -72,6 +76,7 @@ def Backtracking(var):
     a_variables[var] = False
     return None
 
-
+time = t.time()
 print Backtracking(assign_next_var(0))
+print iter
 print "Total Time: %f" % (t.time() - time)

@@ -70,7 +70,6 @@ def extract_domain(filename,variables):
     for v in variables:
         domain.update({v.size: np.array([list(word) for word in words if len(word) == v.size])})
 
-
     return domain
 
 extract_domain("diccionari_CB.txt",extract_variables(modify_crossword_edges("crossword_CB.txt")))
