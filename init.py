@@ -20,39 +20,35 @@ def modify_crossword_edges(filename):
 def extract_variables(crossword_map):
 
     """
-    :param crossword_map: 2D-numpy array with the crossword map 
-    :return: a dictionary with the variables as keys and the squares they occupy as values (e.g 'h1' = [1,2,3..])
-    
+    :param crossword_map holds the crossword 
+    :type crossword_map 2D-numpy array
+    :return list holding all the variables and their absolute position on the board
+    :rtype list holding 1D-numpy arrays
     """
-    temp = []
     variables = []
 
     crossword_flattened = list(crossword_map.flatten())
 
 
     # Extract variables from crossword and the squares they occupy variables
-    for i in range(1,len(crossword_flattened)):
+    for i in range(crossword_map.shape[0],len(crossword_flattened)):
         # Horizontal variables
         if crossword_flattened[i - 1] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            temp.append(i)
+            variables.append(np.array([],dtype='uint8'))
+            variables[-1] = np.append(variables[-1],[i])
 
             for j in range(1,crossword_flattened[i:].index("#")):
-                temp.append(i + j)
+                variables[-1] = np.append(variables[-1], [i+j])
 
-            variables.append(np.array(temp))
-            temp = []
 
         #Vertical variables
         if crossword_flattened[i - crossword_map.shape[1]] == "#" and "0" != crossword_flattened[i] and "#" != crossword_flattened[i]:
-            temp.append(i)
-
+            variables.append(np.array([],dtype='uint8'))
+            variables[-1] = np.append(variables[-1], [i])
             for j in range(crossword_map.shape[1],len(crossword_flattened),crossword_map.shape[1]):
                 if crossword_flattened[i + j] == "#":
                     break
-                temp.append(i + j)
-
-            variables.append(np.array(temp))
-            temp = []
+                variables[-1] = np.append(variables[-1], [i + j])
 
 
     return variables
@@ -61,15 +57,16 @@ def extract_variables(crossword_map):
 def extract_domain(filename,variables):
     """
     :param filename: path to file with the dictionary to load
-    :return: numpy array where each position represents a word in the dictionary
-    
+    :type filename: string
+    :param variables: holds all the variables and their absolute position on the board
+    :type variables: list holding 1D-numpy arrays
+    :return dictionary holding the length of the variable and all the words with that length read from 'filename'
+    :rtype dictionary {key = int, value=numpy array}
     """
     words = np.loadtxt(filename,delimiter="\n",dtype="S")
     domain = {}
 
+    #Build the dictionary
     for v in variables:
         domain.update({v.size: np.array([list(word) for word in words if len(word) == v.size])})
-
     return domain
-
-extract_domain("diccionari_CB.txt",extract_variables(modify_crossword_edges("crossword_CB.txt")))
