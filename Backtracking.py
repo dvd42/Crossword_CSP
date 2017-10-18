@@ -1,11 +1,14 @@
 import init as it
 import numpy as np
 import time as t
+import sys
+if len(sys.argv) != 3:
+	print "Usage: Backtracking.py crosswordfile diccionarifile"
+	sys.exit()
 
-
-crossword = it.modify_crossword_edges("crossword_A.txt")
+crossword = it.modify_crossword_edges(sys.argv[1])
 u_variables = it.extract_variables(crossword)
-words = it.extract_domain("diccionari_A.txt",u_variables)
+words = it.extract_domain(sys.argv[2],u_variables)
 
 # Boolean numpy array where (array[x] = True if the variable x has been assigned)
 a_variables = np.zeros(len(u_variables),dtype=bool)
